@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1024"/>
+<title>MUH 3633 — Music in the United States [Windows 98 Mockup]</title>
+<style>
+/* ============ Windows 98 desktop-metaphor mockup ============ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+body {
+  font-family: "Tahoma", "MS Sans Serif", "Segoe UI", sans-serif;
+  font-size: 11px;
+  color: #000;
+  overflow: hidden;
+  /* Grassy hills + sky wallpaper, rendered in CSS (Bliss-style) */
+  background:
+    radial-gradient(ellipse 340px 120px at 18% 24%, rgba(255,255,255,.85), rgba(255,255,255,0) 70%),
+    radial-gradient(ellipse 260px 90px at 62% 14%, rgba(255,255,255,.75), rgba(255,255,255,0) 70%),
+    radial-gradient(ellipse 300px 100px at 85% 30%, rgba(255,255,255,.6), rgba(255,255,255,0) 70%),
+    radial-gradient(ellipse 160% 90% at 30% 118%, #7ec850 0%, #58a832 34%, #3c8c22 46%, rgba(0,0,0,0) 47%),
+    radial-gradient(ellipse 170% 75% at 85% 125%, #6bbf42 0%, #4d9e2a 40%, #37821e 55%, rgba(0,0,0,0) 56%),
+    linear-gradient(to bottom, #3d7cc9 0%, #6ca6e0 35%, #a8cdf0 58%, #cfe6f7 70%, #58a832 70.5%, #2f7a1a 100%);
+  background-attachment: fixed;
+}
+
+/* ---------- shared 3D chrome ---------- */
+.raised {
+  background: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf;
+}
+.sunken {
+  background: #fff;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  box-shadow: inset 1px 1px 0 #404040, inset -1px -1px 0 #dfdfdf;
+}
+.btn {
+  display: inline-block;
+  background: #c0c0c0;
+  border-top: 1px solid #ffffff;
+  border-left: 1px solid #ffffff;
+  border-right: 1px solid #404040;
+  border-bottom: 1px solid #404040;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #dfdfdf;
+  padding: 3px 12px;
+  font: inherit;
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: center;
+}
+.btn:active { border-top-color:#404040; border-left-color:#404040; border-right-color:#fff; border-bottom-color:#fff; box-shadow: inset 1px 1px 0 #808080; }
+
+/* ---------- windows ---------- */
+.window {
+  position: absolute;
+  background: #c0c0c0;
+  border-top: 2px solid #dfdfdf;
+  border-left: 2px solid #dfdfdf;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  box-shadow: inset 1px 1px 0 #ffffff, inset -1px -1px 0 #808080, 2px 2px 6px rgba(0,0,0,.35);
+  padding: 3px;
+}
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+  padding: 1px 2px 1px 4px;
+  background: linear-gradient(to right, #000080, #1084d0);
+  color: #fff;
+  font-weight: bold;
+  user-select: none;
+}
+.titlebar.inactive { background: linear-gradient(to right, #808080, #b5b5b5); color: #d4d4d4; }
+.titlebar .title { flex: 1; overflow: hidden; white-space: nowrap; }
+.tb-btn {
+  width: 16px; height: 14px;
+  background: #c0c0c0;
+  border-top: 1px solid #fff; border-left: 1px solid #fff;
+  border-right: 1px solid #404040; border-bottom: 1px solid #404040;
+  box-shadow: inset -1px -1px 0 #808080;
+  font: bold 9px "Tahoma", sans-serif;
+  color: #000;
+  text-align: center;
+  line-height: 12px;
+  cursor: pointer;
+}
+.menubar {
+  display: flex; gap: 0;
+  padding: 2px 0 3px 2px;
+  border-bottom: 1px solid #808080;
+  box-shadow: 0 1px 0 #fff;
+}
+.menubar span { padding: 1px 7px; }
+.menubar span u { text-decoration: underline; }
+.menubar span:hover { background: #000080; color: #fff; }
+.win-body { padding: 8px; }
+
+/* ---------- desktop icons ---------- */
+.desktop-icons {
+  position: absolute;
+  top: 8px; left: 8px;
+  display: flex; flex-direction: column; gap: 14px;
+  z-index: 1;
+}
+.dicon {
+  width: 76px;
+  text-align: center;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+.dicon .glyph {
+  font-size: 30px;
+  line-height: 34px;
+  display: block;
+  text-shadow: 1px 1px 0 #000;
+}
+.dicon .label {
+  display: inline-block;
+  padding: 1px 2px;
+  text-shadow: 1px 1px 0 #000;
+}
+.dicon.selected .label { background: #000080; outline: 1px dotted #ffff00; text-shadow: none; }
+
+/* ---------- taskbar ---------- */
+.taskbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  height: 28px;
+  background: #c0c0c0;
+  border-top: 1px solid #dfdfdf;
+  box-shadow: 0 -1px 0 #fff;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 3px;
+  z-index: 100;
+}
+.start-btn {
+  display: flex; align-items: center; gap: 4px;
+  font-weight: bold;
+  padding: 2px 6px 2px 4px;
+  height: 22px;
+}
+.start-flag { font-size: 13px; line-height: 1; }
+.qlaunch {
+  display: flex; gap: 2px; align-items: center;
+  padding: 0 6px;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #808080;
+  box-shadow: -1px 0 0 #fff, 1px 0 0 #fff;
+  height: 22px;
+}
+.qlaunch span { font-size: 13px; cursor: pointer; }
+.task-btn {
+  height: 22px;
+  min-width: 130px;
+  text-align: left;
+  padding: 2px 8px;
+  overflow: hidden; white-space: nowrap;
+}
+.task-btn.active {
+  border-top-color:#404040; border-left-color:#404040;
+  border-right-color:#fff; border-bottom-color:#fff;
+  box-shadow: inset 1px 1px 0 #808080;
+  background: repeating-conic-gradient(#fff 0 25%, #c0c0c0 0 50%) 0 0 / 2px 2px;
+  font-weight: bold;
+}
+.tray {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border-top: 1px solid #808080; border-left: 1px solid #808080;
+  border-right: 1px solid #fff; border-bottom: 1px solid #fff;
+}
+
+/* ---------- window content bits ---------- */
+h1 { font-size: 15px; margin: 0 0 4px; }
+h2 { font-size: 12px; margin: 10px 0 3px; }
+p { margin: 0 0 7px; line-height: 1.45; }
+a { color: #0000ff; }
+a:visited { color: #800080; }
+
+.groupbox {
+  border: 1px solid #808080;
+  box-shadow: 1px 1px 0 #fff, inset 1px 1px 0 #fff;
+  padding: 10px 8px 8px;
+  margin: 8px 0;
+  position: relative;
+}
+.groupbox > legend, .groupbox > .legend {
+  position: absolute;
+  top: -7px; left: 8px;
+  background: #c0c0c0;
+  padding: 0 4px;
+}
+.listview { width: 100%; border-collapse: collapse; background: #fff; }
+.listview th {
+  background: #c0c0c0;
+  border-top: 1px solid #fff; border-left: 1px solid #fff;
+  border-right: 1px solid #404040; border-bottom: 1px solid #404040;
+  font-weight: normal; text-align: left; padding: 2px 6px;
+}
+.listview td { padding: 2px 6px; border-bottom: 1px dotted #c0c0c0; }
+.listview tr.sel td { background: #000080; color: #fff; }
+
+.notepad-body {
+  font-family: "Fixedsys", "Courier New", monospace;
+  font-size: 12px;
+  padding: 4px 6px;
+  height: 148px;
+  overflow-y: scroll;
+  white-space: pre-wrap;
+}
+
+.marquee-strip {
+  overflow: hidden;
+  background: #000080;
+  color: #ffff00;
+  padding: 2px 0;
+  margin-bottom: 6px;
+}
+.marquee-strip span {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marq 14s linear infinite;
+  font-weight: bold;
+}
+@keyframes marq { from { transform: translateX(100%);} to { transform: translateX(-100%);} }
+
+.statusbar {
+  display: flex; gap: 3px;
+  margin-top: 6px;
+}
+.statusbar span {
+  border-top: 1px solid #808080; border-left: 1px solid #808080;
+  border-right: 1px solid #fff; border-bottom: 1px solid #fff;
+  padding: 1px 8px;
+  flex: 1;
+}
+.hitcounter {
+  font-family: "Courier New", monospace;
+  background: #000; color: #00ff00;
+  padding: 0 4px; letter-spacing: 2px;
+  border: 1px inset #808080;
+}
+</style>
+</head>
+<body>
+
+<!-- Desktop icons -->
+<nav class="desktop-icons" aria-label="Desktop icons">
+  <a class="dicon selected" href="../index.html"><span class="glyph">💻</span><span class="label">MUH 3633</span></a>
+  <a class="dicon" href="../weeks/week-01.html"><span class="glyph">📁</span><span class="label">Weeks</span></a>
+  <a class="dicon" href="../listening/index.html"><span class="glyph">🎧</span><span class="label">Listening Lab</span></a>
+  <a class="dicon" href="../jazz-timeline.html"><span class="glyph">🎺</span><span class="label">Jazz Timeline</span></a>
+  <a class="dicon" href="../country-timeline.html"><span class="glyph">🪕</span><span class="label">Country Timeline</span></a>
+  <a class="dicon" href="../texture-explorer-us.html"><span class="glyph">🔍</span><span class="label">Texture Explorer</span></a>
+  <a class="dicon" href="https://webcourses.ucf.edu" target="_blank" rel="noopener"><span class="glyph">🌐</span><span class="label">WebCourses</span></a>
+  <a class="dicon" href="#"><span class="glyph">🗑️</span><span class="label">Recycle Bin</span></a>
+</nav>
+
+<!-- Main course window -->
+<div class="window" data-win="main" style="left: 120px; top: 26px; width: 560px; z-index: 10;">
+  <div class="titlebar">
+    <span>🎵</span><span class="title">MUH3633.EXE — Music in the United States</span>
+    <div class="tb-btn" data-action="min">_</div><div class="tb-btn">□</div><div class="tb-btn" data-action="close">✕</div>
+  </div>
+  <div class="menubar"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span><span><u>W</u>eeks</span><span><u>H</u>elp</span></div>
+  <div class="win-body">
+    <div class="marquee-strip"><span>★★★ Welcome to MUH 3633: Music in the United States · Fall 2026 · MWF 10:30–11:20 a.m. · PAC M261 · Dr. Melissa Scott ★★★</span></div>
+    <h1>Music in the United States</h1>
+    <p>A historical and critical study of music-making in the United States.</p>
+
+    <div class="groupbox">
+      <span class="legend">Course Schedule</span>
+      <table class="listview">
+        <tr><th>Unit</th><th>Weeks</th><th>Open</th></tr>
+        <tr class="sel"><td>Foundations — spirituals, blues, ballads, standards, Adorno</td><td>1–4</td><td><a href="../weeks/week-01.html" style="color:#fff;">week-01.html</a></td></tr>
+        <tr><td>Jazz &amp; Country</td><td>5–8</td><td><a href="../weeks/index.html">weeks</a></td></tr>
+        <tr><td>Rock, Pop &amp; Hip-Hop</td><td>9–11</td><td><a href="../weeks/index.html">weeks</a></td></tr>
+        <tr><td>Working with Archives &amp; Final Review</td><td>12–14</td><td><a href="../archives/index.html">archives</a></td></tr>
+      </table>
+    </div>
+
+    <div class="groupbox">
+      <span class="legend">Assessment Overview</span>
+      <table class="listview">
+        <tr><th>Component</th><th>Weight</th></tr>
+        <tr><td>Listening Quizzes</td><td>40%</td></tr>
+        <tr><td>Final Exam</td><td>20%</td></tr>
+        <tr><td>Archival Exercises</td><td>15%</td></tr>
+        <tr><td>Concept Applications</td><td>15%</td></tr>
+        <tr><td>Weekly Quizzes</td><td>10%</td></tr>
+      </table>
+    </div>
+
+    <div style="display:flex; gap:6px; justify-content:flex-end;">
+      <a class="btn" href="../weeks/week-01.html">Open This Week</a>
+      <a class="btn" href="../listening/index.html">Listening Materials</a>
+      <a class="btn" href="https://webcourses.ucf.edu" target="_blank" rel="noopener">WebCourses</a>
+    </div>
+
+    <div class="statusbar">
+      <span>8 object(s)</span>
+      <span>Office Hours: Tue &amp; Thu 12:30–2:30 p.m., in person</span>
+      <span>Visitors: <span class="hitcounter">004217</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- Notepad window: current week -->
+<div class="window" data-win="notepad" style="left: 430px; top: 320px; width: 420px; z-index: 12;">
+  <div class="titlebar">
+    <span>📄</span><span class="title">WEEK01.TXT - Notepad</span>
+    <div class="tb-btn" data-action="min">_</div><div class="tb-btn">□</div><div class="tb-btn" data-action="close">✕</div>
+  </div>
+  <div class="menubar"><span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>S</u>earch</span><span><u>H</u>elp</span></div>
+  <div class="sunken notepad-body">WEEK 1 — WHAT IS AMERICA'S MUSIC?
+==================================
+
+Introduces the course's central questions,
+listening methods, and approaches to music
+history in the United States.
+
+  MON .... Course introduction
+  WED .... Listening and historical method
+  FRI .... Defining America's music
+
+&gt;&gt; Open: ..\weeks\week-01.html
+
+Required text: American Popular Music,
+Starr &amp; Waterman, 6th ed.</div>
+</div>
+
+<!-- Deadlines dialog -->
+<div class="window" data-win="deadlines" style="left: 730px; top: 90px; width: 300px; z-index: 11;">
+  <div class="titlebar inactive">
+    <span>⚠️</span><span class="title">Upcoming Deadlines</span>
+    <div class="tb-btn" data-action="close">✕</div>
+  </div>
+  <div class="win-body" style="display:flex; gap:10px;">
+    <div style="font-size:28px;">📅</div>
+    <div style="flex:1;">
+      <p><strong>Listening Quiz 1</strong> — Friday, September 18</p>
+      <p><strong>Listening Quiz 2</strong> — October 5<br/>
+         <strong>Listening Quiz 3</strong> — October 19<br/>
+         <strong>Listening Quiz 4</strong> — November 4<br/>
+         <strong>Final Exam</strong> — Finals Week</p>
+      <p style="color:#404040;">See WebCourses for exact availability windows and submission instructions.</p>
+      <div style="text-align:center;"><a class="btn" style="min-width:70px;" href="https://webcourses.ucf.edu" target="_blank" rel="noopener">OK</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- Policies window -->
+<div class="window" data-win="policies" style="left: 60px; top: 430px; width: 350px; z-index: 9;">
+  <div class="titlebar inactive">
+    <span>📋</span><span class="title">POLICIES.HLP — Course Policies at a Glance</span>
+    <div class="tb-btn" data-action="min">_</div><div class="tb-btn">□</div><div class="tb-btn" data-action="close">✕</div>
+  </div>
+  <div class="win-body">
+    <p><strong>Technology:</strong> Bring a laptop, tablet, or smartphone with internet access to every class meeting.</p>
+    <p><strong>Late work:</strong> Extensions and make-ups require an excused absence or documented circumstances — contact the instructor early.</p>
+    <p><strong>AI tools:</strong> May support brainstorming and basic copyediting; submitted work must reflect your own analysis and writing.</p>
+    <p style="color:#404040;">Consult the syllabus in WebCourses for complete policies. · Best viewed in 800×600</p>
+  </div>
+</div>
+
+<!-- Taskbar -->
+<div class="taskbar">
+  <button class="btn start-btn"><span class="start-flag">🪟</span>Start</button>
+  <div class="qlaunch"><span title="Show Desktop">🖥️</span><span title="Internet Explorer">🌐</span><span title="Media Player">🎵</span></div>
+  <button class="btn task-btn" data-for="main">🎵 MUH3633.EXE — Music in the U…</button>
+  <button class="btn task-btn" data-for="notepad">📄 WEEK01.TXT - Notepad</button>
+  <button class="btn task-btn" data-for="deadlines">⚠️ Upcoming Deadlines</button>
+  <button class="btn task-btn" data-for="policies">📋 POLICIES.HLP</button>
+  <div class="tray"><span>🔊</span><span>🖨️</span><span id="clock">10:30 AM</span></div>
+</div>
+
+<script>
+(function () {
+  /* ---- taskbar clock ---- */
+  var el = document.getElementById("clock");
+  function tick() {
+    var d = new Date(), h = d.getHours(), m = d.getMinutes();
+    var ap = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    el.textContent = h + ":" + (m < 10 ? "0" : "") + m + " " + ap;
+  }
+  tick(); setInterval(tick, 30000);
+
+  /* ---- window manager: focus, drag, minimize, close ---- */
+  var zTop = 20;
+  var windows = document.querySelectorAll(".window[data-win]");
+  var taskButtons = document.querySelectorAll(".task-btn[data-for]");
+
+  function taskBtn(id) {
+    return document.querySelector('.task-btn[data-for="' + id + '"]');
+  }
+
+  function focusWin(win) {
+    windows.forEach(function (w) {
+      w.querySelector(".titlebar").classList.add("inactive");
+    });
+    taskButtons.forEach(function (b) { b.classList.remove("active"); });
+    win.querySelector(".titlebar").classList.remove("inactive");
+    win.style.zIndex = ++zTop;
+    var btn = taskBtn(win.dataset.win);
+    if (btn) btn.classList.add("active");
+  }
+
+  windows.forEach(function (win) {
+    var bar = win.querySelector(".titlebar");
+
+    win.addEventListener("pointerdown", function () { focusWin(win); });
+
+    bar.addEventListener("pointerdown", function (e) {
+      if (e.target.closest(".tb-btn")) return;
+      e.preventDefault();
+      var startX = e.clientX, startY = e.clientY;
+      var origX = win.offsetLeft, origY = win.offsetTop;
+      bar.setPointerCapture(e.pointerId);
+      function move(ev) {
+        var x = origX + ev.clientX - startX;
+        var y = origY + ev.clientY - startY;
+        /* keep the title bar reachable: on-screen and above the taskbar */
+        x = Math.max(-win.offsetWidth + 60, Math.min(x, window.innerWidth - 60));
+        y = Math.max(0, Math.min(y, window.innerHeight - 46));
+        win.style.left = x + "px";
+        win.style.top = y + "px";
+      }
+      function up() {
+        bar.removeEventListener("pointermove", move);
+        bar.removeEventListener("pointerup", up);
+      }
+      bar.addEventListener("pointermove", move);
+      bar.addEventListener("pointerup", up);
+    });
+
+    win.querySelectorAll(".tb-btn[data-action]").forEach(function (btn) {
+      btn.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+      btn.addEventListener("click", function () {
+        var action = btn.dataset.action;
+        var tbtn = taskBtn(win.dataset.win);
+        win.style.display = "none";
+        if (action === "close" && tbtn) tbtn.style.display = "none";
+        if (tbtn) tbtn.classList.remove("active");
+      });
+    });
+  });
+
+  taskButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var win = document.querySelector('.window[data-win="' + btn.dataset.for + '"]');
+      if (!win) return;
+      if (win.style.display === "none") {
+        win.style.display = "";
+        focusWin(win);
+      } else if (btn.classList.contains("active")) {
+        win.style.display = "none";      /* minimize on second click, like Win98 */
+        btn.classList.remove("active");
+      } else {
+        focusWin(win);
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
