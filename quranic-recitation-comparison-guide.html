@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qur'anic Recitation Comparison — Sonic Visualiser Guide</title>
+<style>
+  :root {
+    --bg: #faf7f3;
+    --surface: #ffffff;
+    --accent: #7c5c8a;
+    --accent-light: #ede5f3;
+    --accent-mid: #b89ec4;
+    --gold: #c49a3c;
+    --gold-light: #fdf4e3;
+    --green: #4a7c6a;
+    --green-light: #e8f3ef;
+    --red: #8a3c3c;
+    --red-light: #f3e8e8;
+    --text: #2a2220;
+    --text-soft: #6b5f5a;
+    --border: #e0d8d0;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+  }
+
+  header {
+    text-align: center;
+    padding: 2.5rem 2rem 2rem;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+    border-top: 5px solid var(--accent);
+  }
+
+  header h1 {
+    font-size: 1.75rem;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    color: var(--text-soft);
+    font-size: 0.95rem;
+    font-style: italic;
+  }
+
+  .progress-bar-wrap {
+    background: var(--border);
+    border-radius: 99px;
+    height: 8px;
+    margin: 1.5rem auto 0;
+    max-width: 400px;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    background: linear-gradient(90deg, var(--accent), var(--accent-mid));
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .progress-label {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-soft);
+    margin-top: 0.4rem;
+    font-family: 'Courier New', monospace;
+  }
+
+  section {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header:hover { background: var(--accent-light); }
+
+  .section-num {
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-family: 'Courier New', monospace;
+    flex-shrink: 0;
+  }
+
+  .section-num.done { background: var(--green); }
+
+  .section-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .section-toggle {
+    font-size: 0.75rem;
+    color: var(--text-soft);
+    transition: transform 0.2s;
+  }
+
+  .section-toggle.open { transform: rotate(180deg); }
+
+  .section-body {
+    padding: 1.25rem 1.5rem;
+    display: none;
+  }
+
+  .section-body.open { display: block; }
+
+  /* Checklist items */
+  .checklist { list-style: none; }
+
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .checklist li:last-child { border-bottom: none; }
+
+  .checklist input[type="checkbox"] {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .checklist label {
+    cursor: pointer;
+    font-size: 0.95rem;
+    flex: 1;
+  }
+
+  .checklist input:checked + label {
+    color: var(--text-soft);
+    text-decoration: line-through;
+  }
+
+  /* Notes / callouts */
+  .note {
+    border-left: 3px solid var(--accent-mid);
+    background: var(--accent-light);
+    padding: 0.75rem 1rem;
+    border-radius: 0 8px 8px 0;
+    margin: 0.75rem 0;
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+
+  .note.tip { border-color: var(--gold); background: var(--gold-light); }
+  .note.watch { border-color: var(--green); background: var(--green-light); }
+
+  .note strong { color: var(--text); }
+
+  /* Links */
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--accent-mid);
+  }
+
+  a:hover { border-bottom-style: solid; }
+
+  /* Code / setting values */
+  code {
+    background: #f0eaee;
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    color: var(--accent);
+  }
+
+  /* Layer setup table */
+  .layer-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 0.75rem 0;
+  }
+
+  .layer-table th {
+    background: var(--accent);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-weight: normal;
+  }
+
+  .layer-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .layer-table tr:nth-child(even) td { background: var(--bg); }
+
+  /* What to look for cards */
+  .insight-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  @media (max-width: 600px) {
+    .insight-grid { grid-template-columns: 1fr; }
+  }
+
+  .insight-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem;
+    background: var(--bg);
+  }
+
+  .insight-card h4 {
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-bottom: 0.35rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .insight-card p {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    line-height: 1.5;
+  }
+
+  /* Reset button */
+  .reset-btn {
+    display: block;
+    margin: 0 auto;
+    padding: 0.5rem 1.5rem;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    color: var(--text-soft);
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    font-family: 'Georgia', serif;
+  }
+
+  .reset-btn:hover { background: var(--border); }
+
+  /* Maqam reference */
+  .maqam-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+
+  .maqam-chip {
+    background: var(--accent-light);
+    border: 1px solid var(--accent-mid);
+    border-radius: 99px;
+    padding: 0.2rem 0.75rem;
+    font-size: 0.8rem;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Qur'anic Recitation Comparison</h1>
+    <p>Sonic Visualiser setup &amp; analysis workflow — maqam &amp; reciter comparison</p>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">0 of 0 steps completed</div>
+  </header>
+
+  <!-- SECTION 1: Install Sonic Visualiser -->
+  <section>
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-num" id="num-1">1</div>
+      <div class="section-title">Install Sonic Visualiser</div>
+      <div class="section-toggle">▼</div>
+    </div>
+    <div class="section-body open">
+      <ul class="checklist">
+        <li>
+          <input type="checkbox" id="c1" onchange="update()">
+          <label for="c1">Go to <a href="https://sonicvisualiser.org/download.html" target="_blank">sonicvisualiser.org/download.html</a> and download the installer for your OS (Windows / Mac / Linux)</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c2" onchange="update()">
+          <label for="c2">Run the installer and complete setup. Launch Sonic Visualiser once to confirm it opens.</label>
+        </li>
+      </ul>
+      <div class="note tip"><strong>Tip:</strong> On macOS, if you get a security warning, go to System Settings → Privacy &amp; Security → open anyway.</div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: Install pYIN Vamp Plugin -->
+  <section>
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-num" id="num-2">2</div>
+      <div class="section-title">Install the pYIN Vamp Plugin</div>
+      <div class="section-toggle">▼</div>
+    </div>
+    <div class="section-body">
+      <p style="font-size:0.9rem; color:var(--text-soft); margin-bottom:0.75rem;">pYIN is the pitch-tracking algorithm you'll use to extract melodic contours.</p>
+      <ul class="checklist">
+        <li>
+          <input type="checkbox" id="c3" onchange="update()">
+          <label for="c3">Go to <a href="https://code.soundsoftware.ac.uk/projects/pyin/files" target="_blank">code.soundsoftware.ac.uk/projects/pyin/files</a> and download the pYIN binary for your OS.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c4" onchange="update()">
+          <label for="c4">Place the downloaded file in your Vamp plugins folder:
+            <br>• <strong>Windows:</strong> <code>C:\Program Files\Vamp Plugins\</code>
+            <br>• <strong>Mac:</strong> <code>~/Library/Audio/Plug-Ins/Vamp/</code>
+            <br>• <strong>Linux:</strong> <code>~/.vamp/</code>
+          </label>
+        </li>
+        <li>
+          <input type="checkbox" id="c5" onchange="update()">
+          <label for="c5">Restart Sonic Visualiser. Go to <strong>Transform → Feature Extraction</strong> and confirm "pYIN" appears in the list.</label>
+        </li>
+      </ul>
+      <div class="note"><strong>Alternative:</strong> The <a href="https://www.vamp-plugins.org/pack.html" target="_blank">Vamp Plugin Pack</a> installs several useful plugins at once, including Queen Mary plugins for chromagram and key detection.</div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: Get Audio from Hugging Face -->
+  <section>
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-num" id="num-3">3</div>
+      <div class="section-title">Download Audio from Hugging Face</div>
+      <div class="section-toggle">▼</div>
+    </div>
+    <div class="section-body">
+      <p style="font-size:0.9rem; color:var(--text-soft); margin-bottom:0.75rem;">For a meaningful comparison, use the <em>same surah and ayah</em> across 3–4 different reciters.</p>
+      <ul class="checklist">
+        <li>
+          <input type="checkbox" id="c6" onchange="update()">
+          <label for="c6">Go to <a href="https://huggingface.co/datasets/MohamedRashad/Quran-Recitations" target="_blank">MohamedRashad/Quran-Recitations</a> on Hugging Face → click the <strong>Files and versions</strong> tab.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c7" onchange="update()">
+          <label for="c7">Pick a surah to compare — a good starting point is <strong>Surah Al-Fatiha</strong> (short, recited by all reciters, well-documented maqam usage).</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c8" onchange="update()">
+          <label for="c8">Download the same ayah from 3–4 reciters. Suggested reciters for maqam diversity: <strong>Al-Husary</strong> (Bayati), <strong>Al-Minshawi</strong> (Hijaz), <strong>Mishary Rashid</strong> (Rast/Bayati), <strong>Abdul Basit</strong> (mixed).</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c9" onchange="update()">
+          <label for="c9">Save all files to a dedicated folder, named clearly: e.g. <code>alhusary_fatiha_1.mp3</code>, <code>minshawi_fatiha_1.mp3</code></label>
+        </li>
+      </ul>
+      <div class="note tip"><strong>Tip:</strong> The <a href="https://huggingface.co/datasets/Buraaq/quran-audio-text-dataset" target="_blank">Buraaq/quran-audio-text-dataset</a> has word-level segmentation — useful later if you want to zoom in on specific phonemes or words.</div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: Set Up Your Session -->
+  <section>
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-num" id="num-4">4</div>
+      <div class="section-title">Set Up the Sonic Visualiser Session</div>
+      <div class="section-toggle">▼</div>
+    </div>
+    <div class="section-body">
+      <ul class="checklist">
+        <li>
+          <input type="checkbox" id="c10" onchange="update()">
+          <label for="c10">Open Sonic Visualiser. Go to <strong>File → Open</strong> and load your first reciter's audio file.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c11" onchange="update()">
+          <label for="c11">Go to <strong>File → Import More Audio</strong> (or drag additional files in) to add the other 2–3 reciters. Each will open in its own pane.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c12" onchange="update()">
+          <label for="c12">For each audio pane, right-click the waveform → <strong>Add spectrogram layer</strong>. Set window size to <code>2048</code>, overlap to <code>75%</code>.</label>
+        </li>
+      </ul>
+
+      <div class="note watch"><strong>Layer setup reference:</strong></div>
+      <table class="layer-table">
+        <tr>
+          <th>Layer</th>
+          <th>Purpose</th>
+          <th>Key settings</th>
+        </tr>
+        <tr>
+          <td>Waveform</td>
+          <td>Overall amplitude, breath structure</td>
+          <td>Default is fine</td>
+        </tr>
+        <tr>
+          <td>Spectrogram</td>
+          <td>Harmonic content, timbre differences</td>
+          <td>Window: 2048, Overlap: 75%</td>
+        </tr>
+        <tr>
+          <td>pYIN pitch track</td>
+          <td>Melodic contour — the most important layer</td>
+          <td>See step 5 below</td>
+        </tr>
+      </table>
+
+      <ul class="checklist" style="margin-top:0.75rem;">
+        <li>
+          <input type="checkbox" id="c13" onchange="update()">
+          <label for="c13">Save your session: <strong>File → Save Session As</strong> → name it <code>quran-comparison.sv</code>. You can reload this anytime with all layers intact.</label>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION 5: Add Pitch Tracking -->
+  <section>
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-num" id="num-5">5</div>
+      <div class="section-title">Add pYIN Pitch Tracking</div>
+      <div class="section-toggle">▼</div>
+    </div>
+    <div class="section-body">
+      <ul class="checklist">
+        <li>
+          <input type="checkbox" id="c14" onchange="update()">
+          <label for="c14">Click on the first reciter's pane to select it. Go to <strong>Transform → Feature Extraction → pYIN → pYIN: Smoothed Pitch Track</strong>.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c15" onchange="update()">
+          <label for="c15">In the plugin dialog, set <strong>Output pitch range:</strong> <code>55 Hz – 800 Hz</code> (covers the full male and female recitation range). Click OK and let it process.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c16" onchange="update()">
+          <label for="c16">Repeat for each reciter's pane. Give each pitch track a distinct color: right-click the layer → <strong>Edit Layer</strong> → change colour.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c17" onchange="update()">
+          <label for="c17">Set the pitch display to <strong>cents relative to A440</strong> or <strong>Hz</strong> — avoid MIDI note display, which rounds away the microtonal detail essential for maqam.</label>
+        </li>
+      </ul>
+      <div class="note tip"><strong>Tip:</strong> Also run <strong>pYIN: Notes</strong> alongside the pitch track — it segments the melody into discrete note events, making it easier to identify held tones and ornaments.</div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: Maqam Analysis -->
+  <section>
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-num" id="num-6">6</div>
+      <div class="section-title">Maqam Analysis — What to Look For</div>
+      <div class="section-toggle">▼</div>
+    </div>
+    <div class="section-body">
+      <p style="font-size:0.9rem; color:var(--text-soft); margin-bottom:0.75rem;">Common maqamat used in Qur'anic recitation:</p>
+      <div class="maqam-row">
+        <span class="maqam-chip">Bayati</span>
+        <span class="maqam-chip">Rast</span>
+        <span class="maqam-chip">Hijaz</span>
+        <span class="maqam-chip">Saba</span>
+        <span class="maqam-chip">Nahawand</span>
+        <span class="maqam-chip">Jiharkah</span>
+        <span class="maqam-chip">Ajam</span>
+      </div>
+
+      <div class="insight-grid" style="margin-top:1rem;">
+        <div class="insight-card">
+          <h4>Pitch Histogram</h4>
+          <p>Export the pitch track as CSV (right-click layer → Export). Plot the frequency distribution — peaks reveal the tonic and dominant scale degrees of the maqam in use.</p>
+        </div>
+        <div class="insight-card">
+          <h4>Microtonal Inflection</h4>
+          <p>Bayati and Saba use a ♭3 roughly 150 cents above the tonic — between Western E♭ and E. Look for pitch tracks hovering in this ambiguous zone rather than snapping to equal temperament.</p>
+        </div>
+        <div class="insight-card">
+          <h4>Cadential Formulas</h4>
+          <p>Watch the pitch track at the end of each ayah. Most reciters return to the tonic or a characteristic cadential pitch. Compare how different reciters handle the same cadence.</p>
+        </div>
+        <div class="insight-card">
+          <h4>Maqam Modulation</h4>
+          <p>Skilled reciters shift between maqamat within a single recitation. Look for sudden changes in the overall pitch range or characteristic intervals — especially at emotional or semantic peaks in the text.</p>
+        </div>
+      </div>
+
+      <ul class="checklist" style="margin-top:1rem;">
+        <li>
+          <input type="checkbox" id="c18" onchange="update()">
+          <label for="c18">Export each pitch track as CSV: right-click the pitch layer → <strong>Export Layer</strong> → save as <code>recitername_pitch.csv</code>.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c19" onchange="update()">
+          <label for="c19">Compare cadential moments: use the selection tool to isolate the final 2–3 seconds of each ayah and zoom in on the pitch tracks side-by-side.</label>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION 7: Reciter Comparison -->
+  <section>
+    <div class="section-header" onclick="toggleSection(this)">
+      <div class="section-num" id="num-7">7</div>
+      <div class="section-title">Reciter Comparison — What to Look For</div>
+      <div class="section-toggle">▼</div>
+    </div>
+    <div class="section-body">
+      <div class="insight-grid">
+        <div class="insight-card">
+          <h4>Tempo &amp; Duration</h4>
+          <p>Compare how long each reciter takes for the same ayah. Hafs reciters (like Mishary) often differ markedly in pacing from Warsh reciters. Use the timeline ruler to measure.</p>
+        </div>
+        <div class="insight-card">
+          <h4>Madd (Lengthening)</h4>
+          <p>Elongated vowels show as sustained horizontal bands in the pitch track. Compare their duration across reciters — tajweed rules specify minimums, but reciters vary considerably above that.</p>
+        </div>
+        <div class="insight-card">
+          <h4>Ornamentation</h4>
+          <p>Look for rapid pitch oscillations (melisma / zahrafa). In the spectrogram these appear as shimmering vertical bands; in the pitch track as fast zig-zag curves. Al-Minshawi is known for pronounced ornamentation.</p>
+        </div>
+        <div class="insight-card">
+          <h4>Tonal Center</h4>
+          <p>Even reciters using the same maqam may set the tonic at different pitches. Note the absolute Hz value of each reciter's tonic — this reflects vocal range and regional convention.</p>
+        </div>
+      </div>
+
+      <ul class="checklist" style="margin-top:1rem;">
+        <li>
+          <input type="checkbox" id="c20" onchange="update()">
+          <label for="c20">Align all panes to the same time scale (View → Zoom to match). Scroll through all reciters simultaneously to spot structural similarities.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c21" onchange="update()">
+          <label for="c21">Note your observations per reciter in a text file or notebook — maqam used, approximate tonic pitch (Hz), ornamentation style, and any maqam shifts.</label>
+        </li>
+        <li>
+          <input type="checkbox" id="c22" onchange="update()">
+          <label for="c22">Save your final session with all layers and notes attached.</label>
+        </li>
+      </ul>
+
+      <div class="note watch"><strong>Good reference:</strong> Kristina Nelson's <em>The Art of Reciting the Qur'an</em> (1985) remains the most thorough musicological study of recitation styles and is a useful companion to this analysis.</div>
+    </div>
+  </section>
+
+  <button class="reset-btn" onclick="resetAll()">↺ Reset all checkboxes</button>
+
+</div>
+
+<script>
+  const total = document.querySelectorAll('input[type="checkbox"]').length;
+
+  function update() {
+    const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+    const pct = total > 0 ? (checked / total * 100) : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `${checked} of ${total} steps completed`;
+
+    // Update section numbers to show completion
+    for (let i = 1; i <= 7; i++) {
+      const sectionBoxes = getSectionBoxes(i);
+      const allDone = sectionBoxes.length > 0 && sectionBoxes.every(cb => cb.checked);
+      const numEl = document.getElementById('num-' + i);
+      if (numEl) {
+        numEl.classList.toggle('done', allDone);
+        if (allDone) numEl.textContent = '✓';
+        else numEl.textContent = i;
+      }
+    }
+  }
+
+  function getSectionBoxes(sectionIdx) {
+    const sections = document.querySelectorAll('section');
+    const section = sections[sectionIdx - 1];
+    if (!section) return [];
+    return Array.from(section.querySelectorAll('input[type="checkbox"]'));
+  }
+
+  function toggleSection(header) {
+    const body = header.nextElementSibling;
+    const toggle = header.querySelector('.section-toggle');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    toggle.classList.toggle('open', !isOpen);
+  }
+
+  function resetAll() {
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    update();
+  }
+
+  // Init
+  update();
+</script>
+</body>
+</html>

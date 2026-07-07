@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>~*~ BADGER BADGER BADGER shrine ~*~</title>
+<style>
+  /* ============ MATRIX PUNK-ish palette, badger edition ============ */
+  body {
+    background: #000500;
+    color: #d5ffd5;
+    font-family: Verdana, Tahoma, sans-serif;
+    font-size: 11px;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+  a { color: #00ff41; font-weight: bold; text-shadow: 0 0 4px #00cc33; }
+  .wrap {
+    width: 800px;
+    margin: 0 auto;
+    border-left: 2px dashed #00cc33;
+    border-right: 2px dashed #00cc33;
+    background: #020a02;
+    min-height: 100vh;
+  }
+  h1 {
+    font-family: "Trebuchet MS", sans-serif;
+    font-size: 26px;
+    text-align: center;
+    color: #00ff41;
+    text-shadow: 0 0 10px #00ff41, 0 0 20px #00cc33, 2px 2px 0 #000;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin: 10px 0 4px;
+    position: relative;
+  }
+  .blink { animation: blink 1s step-start infinite; }
+  @keyframes blink { 0%,49%{opacity:1;} 50%,100%{opacity:0;} }
+
+  marquee { color: #00ff41; font-size: 11px; background: #001400; padding: 3px 0; border-top: 1px solid #00cc33; border-bottom: 1px solid #00cc33; }
+
+  /* ============ THE STAGE (flash movie area) ============ */
+  .stage-frame {
+    margin: 12px auto;
+    width: 720px;
+    border: 3px solid transparent;
+    box-shadow: 0 0 0 1px #00ff41, 0 0 0 3px #000, 0 0 0 4px #00cc33, 0 0 18px #00cc3388;
+    background: linear-gradient(#7ec8ff 0%, #7ec8ff 55%, #3a9e3a 55%, #2c7a2c 100%);
+    position: relative;
+    height: 400px;
+    overflow: hidden;
+  }
+  .scene { position:absolute; inset:0; opacity:0; transition:opacity .15s; }
+  .scene.active { opacity:1; }
+
+  /* badgers bob up from behind the grass line */
+  .badger {
+    position: absolute;
+    bottom: 90px;
+    animation: bob 0.46s ease-in-out infinite alternate;
+    transform-origin: bottom center;
+  }
+  @keyframes bob {
+    from { transform: translateY(38px) rotate(-4deg); }
+    to   { transform: translateY(0)    rotate(4deg); }
+  }
+
+  /* mushrooms sway */
+  .shroom {
+    position: absolute;
+    bottom: 110px;
+    animation: sway 0.8s ease-in-out infinite alternate;
+    transform-origin: bottom center;
+  }
+  @keyframes sway {
+    from { transform: rotate(-8deg) scale(1); }
+    to   { transform: rotate(8deg) scale(1.06); }
+  }
+
+  /* snake slithers across */
+  .snake {
+    position: absolute;
+    bottom: 110px;
+    z-index: 5;
+    left: -320px;
+    animation: slither 2.6s linear infinite;
+  }
+  @keyframes slither {
+    0%   { left: -320px; }
+    100% { left: 760px; }
+  }
+  .snake svg { animation: wiggle 0.35s ease-in-out infinite alternate; }
+  @keyframes wiggle { from { transform: skewX(-6deg); } to { transform: skewX(6deg); } }
+
+  .chant {
+    position: absolute;
+    top: 22px;
+    width: 100%;
+    text-align: center;
+    font-family: "Comic Sans MS", "Trebuchet MS", cursive;
+    font-size: 34px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 0 #000, 0 0 12px #00ff41;
+    animation: pulse 0.46s ease-in-out infinite alternate;
+  }
+  @keyframes pulse { from { transform: scale(0.92); } to { transform: scale(1.08); } }
+
+  .grass-blades { position:absolute; bottom:0; left:0; right:0; height:100px;
+    background: repeating-linear-gradient(80deg, #2c7a2c 0 6px, #359135 6px 12px); }
+
+  /* ============ chrome bits ============ */
+  .panel {
+    margin: 10px 30px;
+    padding: 10px 14px;
+    border: 3px solid transparent;
+    box-shadow: 0 0 0 1px #00ff41, 0 0 0 3px #000, 0 0 0 4px #00cc33;
+    background: #001200;
+  }
+  .panel h2 { font-size: 14px; color: #00ff41; text-shadow: 0 0 6px #00cc33; margin: 0 0 6px; letter-spacing: 2px; }
+  .pixel-divider { text-align:center; color:#00ff41; font-size:10px; letter-spacing:2px; overflow:hidden; white-space:nowrap; margin: 8px 0; }
+  .now-playing { text-align:center; margin: 8px 0; color:#aaffaa; }
+  .visitor-counter { text-align:center; margin: 10px 0 2px; }
+  .counter-digits { font-family:"Courier New",monospace; background:#000; color:#00ff41; padding:2px 6px; border:1px solid #00cc33; letter-spacing:3px; }
+  .webring { text-align:center; margin: 6px 0 14px; color:#88cc88; }
+  footer { text-align:center; padding: 8px 0 20px; color:#557755; }
+
+  .cursor-trail {
+    position:absolute; width:8px; height:8px; pointer-events:none; z-index:9999;
+    background: radial-gradient(circle, #fff 0%, #00ff41 60%, transparent 100%);
+    border-radius:50%;
+    animation: trail-fade .6s forwards;
+  }
+  @keyframes trail-fade { from{opacity:1;transform:scale(1);} to{opacity:0;transform:scale(.2);} }
+
+  .sparkle-star {
+    position:absolute; width:6px; height:6px; background:#fff; pointer-events:none;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    animation: sparkle 1.5s infinite;
+  }
+  @keyframes sparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0);} 50%{opacity:1;transform:scale(1) rotate(180deg);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <marquee behavior="scroll" direction="left" scrollamount="4">✦ badger badger badger badger badger badger badger badger MUSHROOM MUSHROOM ✦ omg it's a snaaaake ✦ best viewed in IE6 at 1024x768 ✦ turn ur speakers up!!! (jk there is no sound lol) ✦</marquee>
+
+  <h1 id="site-title">☆ badger badger badger ☆</h1>
+  <div style="text-align:center;"><span class="blink" style="color:#00ff41;">*** NEW!!! now with 100% more snake ***</span></div>
+
+  <!-- ============ THE FLASH MOVIE ============ -->
+  <div class="stage-frame" id="stage">
+    <!-- scene 1: BADGERS -->
+    <div class="scene active" id="scene-badgers">
+      <div class="chant" id="chant-b">badger badger badger</div>
+    </div>
+    <!-- scene 2: MUSHROOM -->
+    <div class="scene" id="scene-shrooms">
+      <div class="chant" style="color:#ffdddd;">Mushroom! MUSHROOM!</div>
+    </div>
+    <!-- scene 3: SNAKE -->
+    <div class="scene" id="scene-snake">
+      <div class="chant" style="color:#ffff88;">Aaargh! It's a snake!!</div>
+      <div class="snake">
+        <svg width="300" height="80" viewBox="0 0 300 80">
+          <path d="M10 60 Q 50 20 90 55 T 170 55 T 250 55" stroke="#e8d24a" stroke-width="18" fill="none" stroke-linecap="round"/>
+          <circle cx="255" cy="52" r="16" fill="#e8d24a"/>
+          <circle cx="261" cy="47" r="3" fill="#000"/>
+          <path d="M270 52 q 14 -2 20 0 q -6 3 -20 2 z" fill="#cc2222"/>
+        </svg>
+      </div>
+    </div>
+    <div class="grass-blades"></div>
+  </div>
+
+  <div class="pixel-divider">✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦·✦</div>
+
+  <div class="now-playing">🎵 Now Playing:
+    <marquee behavior="scroll" scrollamount="2" style="display:inline-block;width:160px;border:none;background:none;">badger_badger_loop_FINAL2.mid</marquee>
+    <button onclick="this.textContent = this.textContent === '🔊' ? '🔇' : '🔊'">🔊</button>
+  </div>
+
+  <div class="panel">
+    <h2>♥ welcome to my badger shrine ♥</h2>
+    <p>OMG hiiii!! welcome to my page dedicated to the GREATEST flash animation of all time!!! i watched it like 400 times in the computer lab lol. the badgers dance FOREVER and they never get tired!! btw this is a FAN site, i am NOT affiliated with any actual badgers.</p>
+    <p><b>updates:</b> [07.03.06] finally fixed the layout ugh. added the snake. [06.28.06] mushroom scene works now!!</p>
+  </div>
+
+  <div class="visitor-counter"><span>You are visitor</span> <span class="counter-digits">00042317</span></div>
+  <div class="webring">◄ prev — [ <a href="#">☆ flash animation ring ☆</a> ] — next ►</div>
+  <footer>© 2006 badgershrine.cjb.net — do not steal!! layout by me!!!</footer>
+</div>
+
+<script>
+  // ---- build 8 dancing badgers (each a tiny inline SVG) ----
+  const badgerSVG = `
+    <svg width="90" height="120" viewBox="0 0 90 120">
+      <ellipse cx="45" cy="85" rx="28" ry="34" fill="#777"/>
+      <ellipse cx="45" cy="88" rx="16" ry="24" fill="#ddd"/>
+      <g class="head">
+        <ellipse cx="45" cy="38" rx="24" ry="22" fill="#eee"/>
+        <path d="M30 18 Q 45 6 60 18 L 56 34 Q 45 28 34 34 Z" fill="#222"/>
+        <path d="M36 22 L 40 55 L 33 56 Z" fill="#222"/>
+        <path d="M54 22 L 50 55 L 57 56 Z" fill="#222"/>
+        <circle cx="37" cy="36" r="3.5" fill="#000"/>
+        <circle cx="53" cy="36" r="3.5" fill="#000"/>
+        <ellipse cx="45" cy="52" rx="5" ry="4" fill="#000"/>
+        <ellipse cx="26" cy="18" rx="7" ry="8" fill="#555"/>
+        <ellipse cx="64" cy="18" rx="7" ry="8" fill="#555"/>
+      </g>
+      <ellipse cx="20" cy="80" rx="8" ry="16" fill="#666" transform="rotate(-20 20 80)"/>
+      <ellipse cx="70" cy="80" rx="8" ry="16" fill="#666" transform="rotate(20 70 80)"/>
+    </svg>`;
+  const sceneB = document.getElementById('scene-badgers');
+  for (let i = 0; i < 8; i++) {
+    const b = document.createElement('div');
+    b.className = 'badger';
+    b.innerHTML = badgerSVG;
+    b.style.left = (20 + i * 85) + 'px';
+    b.style.animationDelay = (i % 2 ? 0.23 : 0) + 's';   // alternating bob, like the original
+    b.style.zIndex = i % 2 ? 2 : 1;
+    b.style.transform += '';
+    sceneB.appendChild(b);
+  }
+
+  // ---- two mushrooms ----
+  const shroomSVG = `
+    <svg width="140" height="160" viewBox="0 0 140 160">
+      <rect x="55" y="70" width="30" height="80" rx="12" fill="#f5e6c8"/>
+      <ellipse cx="70" cy="60" rx="62" ry="40" fill="#cc2222"/>
+      <ellipse cx="45" cy="48" rx="10" ry="7" fill="#fff"/>
+      <ellipse cx="90" cy="42" rx="12" ry="8" fill="#fff"/>
+      <ellipse cx="70" cy="72" rx="9" ry="6" fill="#fff"/>
+    </svg>`;
+  const sceneS = document.getElementById('scene-shrooms');
+  [180, 420].forEach((x, i) => {
+    const s = document.createElement('div');
+    s.className = 'shroom';
+    s.innerHTML = shroomSVG;
+    s.style.left = x + 'px';
+    s.style.animationDelay = i * 0.4 + 's';
+    sceneS.appendChild(s);
+  });
+
+  // ---- the loop: 12 beats of badger, 2 of mushroom, badger again, then SNAKE ----
+  const scenes = ['scene-badgers','scene-shrooms','scene-badgers','scene-snake'];
+  const durations = [5500, 1800, 5500, 2600];
+  let idx = 0;
+  function nextScene() {
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+    document.getElementById(scenes[idx]).classList.add('active');
+    setTimeout(nextScene, durations[idx]);
+    idx = (idx + 1) % scenes.length;
+  }
+  nextScene();
+
+  // ---- chant text flips between badger/badger/badger emphasis ----
+  const chant = document.getElementById('chant-b');
+  const words = ['badger badger badger', 'BADGER badger badger', 'badger BADGER badger', 'badger badger BADGER'];
+  let w = 0;
+  setInterval(() => { chant.textContent = words[w = (w + 1) % words.length]; }, 460);
+
+  // ---- sparkles on the title ----
+  const title = document.getElementById('site-title');
+  for (let i = 0; i < 10; i++) {
+    const st = document.createElement('span');
+    st.className = 'sparkle-star';
+    st.style.left = (5 + Math.random() * 90) + '%';
+    st.style.top = (Math.random() * 100) + '%';
+    st.style.animationDelay = Math.random() * 1.5 + 's';
+    title.appendChild(st);
+  }
+
+  // ---- cursor trail ----
+  document.addEventListener('mousemove', (e) => {
+    const t = document.createElement('div');
+    t.className = 'cursor-trail';
+    t.style.left = e.pageX + 'px';
+    t.style.top = e.pageY + 'px';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 600);
+  });
+</script>
+</body>
+</html>
