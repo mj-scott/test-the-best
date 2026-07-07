@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Surah Al-Fil — Pitch Comparison (4 Reciters)</title>
+<style>
+  :root {
+    --bg: #faf7f3;
+    --surface: #ffffff;
+    --accent: #7c5c8a;
+    --accent-light: #ede5f3;
+    --accent-mid: #b89ec4;
+    --gold: #c49a3c;
+    --gold-light: #fdf4e3;
+    --text: #2a2220;
+    --text-soft: #6b5f5a;
+    --border: #e0d8d0;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+    --r1: #e06060; /* Abdul Basit */
+    --r2: #5588cc; /* Ayman Suwaid */
+    --r3: #44aa77; /* Al-Minshawi */
+    --r4: #cc7733; /* Al-Shuraim */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 1.5rem 1rem; }
+  .page { max-width: 960px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    padding: 2rem;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    margin-bottom: 1.5rem;
+    border-top: 5px solid var(--accent);
+  }
+  header h1 { font-size: 1.6rem; color: var(--accent); margin-bottom: 0.3rem; }
+  header p { color: var(--text-soft); font-size: 0.9rem; }
+
+  .expiry-warn {
+    background: var(--gold-light);
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: #7a5a10;
+    margin-bottom: 1.5rem;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Ayah tabs */
+  .ayah-tabs {
+    display: flex;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .ayah-tab {
+    padding: 0.35rem 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    background: var(--surface);
+    font-size: 0.82rem;
+    cursor: pointer;
+    color: var(--text-soft);
+    font-family: 'Georgia', serif;
+  }
+  .ayah-tab.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Main comparison canvas */
+  .chart-wrap {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .chart-wrap h2 {
+    font-size: 0.95rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .chart-text {
+    font-size: 0.88rem;
+    color: var(--text-soft);
+    direction: rtl;
+    margin-bottom: 0.75rem;
+    font-style: italic;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg);
+    border-radius: 6px;
+  }
+  canvas.pitch-chart {
+    width: 100%;
+    height: 200px;
+    border-radius: 6px;
+    background: #f8f5ff;
+    display: block;
+  }
+
+  /* Per-reciter grid */
+  .reciter-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 600px) { .reciter-grid { grid-template-columns: 1fr; } }
+
+  .reciter-card {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .reciter-header {
+    padding: 0.75rem 1rem 0.5rem;
+    border-bottom: 2px solid;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .reciter-name {
+    font-size: 0.9rem;
+    font-weight: bold;
+    flex: 1;
+  }
+  .reciter-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .reciter-body { padding: 0.75rem 1rem; }
+
+  audio {
+    width: 100%;
+    height: 32px;
+    margin-top: 0.5rem;
+    accent-color: var(--accent);
+  }
+
+  .status-line {
+    font-size: 0.75rem;
+    color: var(--text-soft);
+    margin-top: 0.25rem;
+    min-height: 1.1em;
+  }
+  .status-line.error { color: #cc4444; }
+  .status-line.ok { color: #44886a; }
+
+  /* Observations panel */
+  .observations {
+    background: var(--surface);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .observations h2 { font-size: 0.95rem; color: var(--accent); margin-bottom: 0.75rem; }
+  .obs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 500px) { .obs-grid { grid-template-columns: 1fr; } }
+  .obs-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    background: var(--bg);
+  }
+  .obs-card h4 { color: var(--accent); font-size: 0.8rem; margin-bottom: 0.3rem; letter-spacing: 0.03em; text-transform: uppercase; }
+
+  /* Analyze button */
+  .btn-analyze {
+    display: block;
+    margin: 0 auto 1.5rem;
+    padding: 0.65rem 2rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 99px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+    box-shadow: 0 2px 8px rgba(124,92,138,0.3);
+  }
+  .btn-analyze:hover { background: #6a4d78; }
+  .btn-analyze:disabled { background: var(--accent-mid); cursor: default; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Surah Al-Fil — Pitch Comparison</h1>
+    <p>Live pitch analysis of 4 reciters · Source: MohamedRashad/Quran-Recitations (Hugging Face)</p>
+  </header>
+
+  <div class="expiry-warn">
+    ⏳ <strong>Note:</strong> The audio links are signed and valid for ~24 hours from when this file was generated.
+    If audio doesn't load, re-run the Cowork session to get fresh URLs. Row indices are:
+    Abdul Basit 105933–105937 · Suwaid 112169–112173 · Minshawi 118405–118409 · Shuraim 124641–124645.
+  </div>
+
+  <div class="legend">
+    <strong style="font-size:0.85rem;color:var(--text-soft);margin-right:0.25rem;">Reciters:</strong>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r1)"></div> عبد الباسط (Abdul Basit)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r2)"></div> أيمن سويد (Ayman Suwaid)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r3)"></div> المنشاوي مجوّد (Al-Minshawi, Mujawwad)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r4)"></div> سعود الشريم (Saud Al-Shuraim)</div>
+  </div>
+
+  <!-- Ayah selector -->
+  <div class="ayah-tabs" id="ayahTabs">
+    <button class="ayah-tab active" onclick="selectAyah(0)">Ayah 1</button>
+    <button class="ayah-tab" onclick="selectAyah(1)">Ayah 2</button>
+    <button class="ayah-tab" onclick="selectAyah(2)">Ayah 3</button>
+    <button class="ayah-tab" onclick="selectAyah(3)">Ayah 4</button>
+    <button class="ayah-tab" onclick="selectAyah(4)">Ayah 5</button>
+  </div>
+
+  <!-- Overlay pitch chart -->
+  <div class="chart-wrap">
+    <h2>Pitch Overlay — all 4 reciters</h2>
+    <div class="chart-text" id="ayahText">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَٰبِ ٱلْفِيلِ</div>
+    <canvas class="pitch-chart" id="overlayCanvas"></canvas>
+    <div class="status-line" id="overallStatus">Click "Analyze All" to load and extract pitch contours.</div>
+  </div>
+
+  <button class="btn-analyze" id="analyzeBtn" onclick="analyzeAll()">▶ Analyze All</button>
+
+  <!-- Per-reciter cards -->
+  <div class="reciter-grid" id="reciterGrid"></div>
+
+  <!-- Musicological observations -->
+  <div class="observations">
+    <h2>What to listen for</h2>
+    <div class="obs-grid">
+      <div class="obs-card">
+        <h4>Tonal Center</h4>
+        <p>Note the lowest sustained pitch each reciter settles on — this is their tonic. The pitch chart y-axis shows Hz; compare where each reciter's line clusters at the start and end of each ayah.</p>
+      </div>
+      <div class="obs-card">
+        <h4>Maqam Signature</h4>
+        <p>Al-Minshawi (Mujawwad) typically uses Bayati or Hijaz — listen for the characteristic raised 4th and lowered 3rd. Abdul Basit is known for Bayati with Hijaz modulations.</p>
+      </div>
+      <div class="obs-card">
+        <h4>Cadential Patterns</h4>
+        <p>Watch the pitch drop at the end of each ayah line. How steep is the descent? Does it land on the tonic, or on a higher finalis? This varies significantly across recitation schools.</p>
+      </div>
+      <div class="obs-card">
+        <h4>Ornamentation</h4>
+        <p>Rapid pitch oscillations in the chart (jagged sections) indicate melisma or tahrir. Al-Minshawi's Mujawwad style tends to show more of these vs. the more measured Murattal style.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ======= DATA =======
+const RECITERS = [
+  {
+    name: 'عبد الباسط (Abdul Basit)',
+    color: getComputedStyle(document.documentElement).getPropertyValue('--r1').trim() || '#e06060',
+    style: 'Murattal',
+    ayat: [
+      { text: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَٰبِ ٱلْفِيلِ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/105933/audio/audio.mp3?Expires=1781474402&Signature=BpJDv2NyG3LekpLwA4oPa5Yu7u2wM4U5S6IUe5vrhaftdLaEEEsmRhiKN1ck-L8RsBMx6pv0FAYwEkpNJ5KZLodI7lad6Hp3uCf8mPgiBHImFokhhofbr~l4zc1HgVN9yOPwsFKo9Y7zlKuxPQPNwMScdl93fDxbXlK0rGLNwh0k93nhVceGLs72LG6F~KlIwRSCiUhi1vZMQQjDr5GEomcKef-hu9o3myIFV026POVqqDD~H6AS1ltfQZort759~MaWTWqnV91LBQFoTe~SjMjbjSU~-iicHl~ouzZ9rnIKs6mZQEi-r-mS2JvWnMsRHaIi5FoG7AuWPjfLym4rQg__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'أَلَمْ يَجْعَلْ كَيْدَهُمْ فِى تَضْلِيلٍۢ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/105934/audio/audio.mp3?Expires=1781474402&Signature=zXsxBpnL6ruxBghTqz-Egc~tI-c8r7RbaXXH~za0DPa3i~Uc6pZOlTORcNoW8xln3O04-~hjlDBILJBALYQV49Y8aOR05MwuQ0uqBz3qeLjCiBRkygty~OLh870m~jt4ktrhUKicpHKoeasORa1o5TsTvHHzYjTyh8OkR~vqTe5hD5IEv3G60nCK5WYE7eAmpR-hLykblWIvm1FjaT7r7NbVOKotau7Wkm3nb-YRIiZKm5mWqERtw6deCH9wJrd5TtNbzvs-6fxzj8ezkfcnaJx44rFJO4UuxpWugwMmWWQ76K2iY1bdMHP6BSRFDu0cIx0WDgRlySX~gRhM8UMGbg__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'وَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/105935/audio/audio.mp3?Expires=1781474402&Signature=xu-BTfYZV1vU4QxNpvCMd6bISBUv0PgBQQ0mpdbDeK2bpWtVnYjwrb10QL7jglnneKfJmmCTMPmY~xqbnRSaoLISNpe9Nt0xAi7Exw43jwbdx10j65lwCg7GrzvumoiW0GD1wu-Y17GXoDZ4RXQQYVAtOQ23sqSm7IvyIKNGb9xsY4Opv0ea5GeJ2A-XAzz6RL3aWMtD4eIE71jYrI3icb7wPMHmnG1T2F9fjaZy36Oc88z2Ejc2WVwXndqSKuIHKEJMrVWOwJmzMi4OLYCsYaNW7t4T9qS2y-MKpQbueyVFwGkucfKfVCBWY77jsLjjYMdxPXUy0WyYSWNoxtrL-A__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'تَرْمِيهِم بِحِجَارَةٍۢ مِّن سِجِّيلٍۢ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/105936/audio/audio.mp3?Expires=1781474402&Signature=vBK0KNDW7lhCbOwe-kCRrW6dYI4fG06-O~kBR-o7AEaquGTt1f6bglS7XZRziWkLrukefRjcNFucCDt6enflgQ2vn5rNpI8pCT7mpV8mKJ3IBo~ipdhqhnzmRV~hpJXMNUrgekE4HBFAzvqaB3r-~pMF9z06MJrXu-8B~IG4YuksET9lTp9EdlKD1wN1AVgl8R7QeEme5yCpCHZwID7COl0qb2z~AEe7OuZ695DAl2EYbcbpPQ5Z5HFOSm-Xi7caDpKFAayl7zOHfMq71Xg7R45oUNx-CX-4TTKSuOyuhQtwbivMx5bSfLlVWJy1QcD1AS9BIeocCVPbaUzyH5Q__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'فَجَعَلَهُمْ كَعَصْفٍۢ مَّأْكُولٍۭ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/105937/audio/audio.mp3?Expires=1781474402&Signature=yazEYPolYPZFp7fd8ty26p6cZXczDYFgfQQKDlRRhf54vPIlZCoSPD04XVrztVqOg7a3~J35ZySFknFlxpV3CMlV823zYsTf~31yjTOeVRAkKhvQZYhswpjaRSFcBJx28pgW5kdsfCmlcEERHhiKP534-RY2SEzBvnR9lZdSuXUyAgZr0JTdbV77rLo3jF9ZUqBonNbEPKvgtktjASQg3A9wZju9Pqe1-shDH7XccM1gZcdYP8yGRiUW54hhntWw__&Key-Pair-Id=K204OQ5RWQVDLD' }
+    ]
+  },
+  {
+    name: 'أيمن سويد (Ayman Suwaid)',
+    color: '#5588cc',
+    style: 'Murattal',
+    ayat: [
+      { text: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَٰبِ ٱلْفِيلِ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/112169/audio/audio.mp3?Expires=1781474385&Signature=ncCQ9t7kkuKft-PiuBEivCUdrMjZ7tLu22s8pK6AjFSyQ6WNlOZrMBzJoGLl8mR8HwbJriKFnJqYts9GyKEiMjJ~yz~jKZ4Et9A7VsEAGR4SC3tgLJLiVF6JV~gqsVw432QfEvHBTTU~XQ5kIuN3YYQoQ3HWnEggNnU3d-RKq3iq9PJtDQuGs3~mN5zNZNFlz3vy1J0A45PoZr9NOrpa19vQHIriUYtqnaLf~u0Ons~9KcYnVVTMgTP2ZI8-Z3EWQJlCVkp1yzEzy0nxJI0wsE2EqcCvkwLugDVtRr3zanwJaztK6zP7i6Q9pcZXe9bTOSCagQNeQK6SSrhhxHDPwQ__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'أَلَمْ يَجْعَلْ كَيْدَهُمْ فِى تَضْلِيلٍۢ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/112170/audio/audio.mp3?Expires=1781474385&Signature=EiaAOU5rt3iCYUMq9g9CdPy1fShcfZJL3z~7ZGE9fsua28kO707D1XCRNokZUgh~g5whl2PNqdIC4E4-rIE~VYrcCK0EXdL8YZL65Z7oOR1C9doCKKgLjBuc3tl0Sax3oW0wl2AzSbe~NRPKv3OR-64d49D~3jdvHi5s7fQyvpFf3ymX1GNyjea~7cEdUmJ90WUGNMWDd0j7BFcG384liJAROVQWbcMedIFiY8Id6277BRwpiSizz9K57PE-vYxmbBdtTr17sgC5aXed5xzMrNqjXYtzz91zJEFFxI-aMkovxsGskrbw5Z0VpPecARS19UzitHt~qLJNQrV3vpmebg__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'وَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/112171/audio/audio.mp3?Expires=1781474385&Signature=qnLPQHxWWQCscj5hDS5fTOdw1rUCYmF4OtA5QYlR1A3TXqBTbPdVam6Mb0q0uFGZWYao6-s~IKZ4Et9A7VsEAGR4SC3tgLJLiVF6JV~gqsVw432QfEvHBTTU~XQ5kIuN3YYQoQ3HWnEggNnU3d-RKq3iq9PJtDQuGs3~mN5zNZNFlz3vy1J0A45PoZr9NOrpa19vQHIriUYtqnaLf~u0Ons~9KcYnVVTMgTP2ZI8-Z3EWQJlCVkp1yzEzy0nxJI0wsE2EqcCvkwLugDVtRr3zanwJaztK6zP7i6Q9pcZXe9bTOSCagQNeQK6SSrhhxHDPwQ__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'تَرْمِيهِم بِحِجَارَةٍۢ مِّن سِجِّيلٍۢ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/112172/audio/audio.mp3?Expires=1781474385&Signature=JdBSVaSkjl0OdgcAUjUqvZ92JAXV4IEo6eIVs0n-sGRRQbA0mbLHKkiufbZedBOwLTwS-9VXJJnMB~PlJruekZx-aiVMgM7LhZQ-t1722oLJyxazpumc39Va~TrnQvx-BApqiSlCd1OSt68Ayz2EqBDjN7OboJYFe1q8vNZpP8wYKEq1lKClOPBDrlIqmNARlRTlJTEJ56wWYBSWuNjf4GDYuAVx5yy7Q2UtX4SQhehC8Rx~fOcOw7FGFpyCfA50dzGVKAiiCKSjBw5RvbUf7RtjMuY2BDbruSvIiz2SvMZ6-hc7jZJR8fiprr3u67bXbDt3RPXbfsKih8L6wvbyow__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'فَجَعَلَهُمْ كَعَصْفٍۢ مَّأْكُولٍۭ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/112173/audio/audio.mp3?Expires=1781474385&Signature=oHUUIHDEEniTbPsRNWKFys~IpgzkQIh6Ml6ZlYtlmDX1CF~igHBnhibl6xnKIQX2rfOJnKO32xacCFPp7Mou4m3Zm5bGpFo6lq-plbgUUskjMa-dQ22TNQI9~ditz7JjFtCtpCbjJm2Mbv508atqKxRjQGU5V6f63hw9Bx6Tca1B7ayAEotteazZT-jZpG1A8icU07aXFj48WSepiTUENob-HZ0iLlTvUC779DTb5c~bKVFNZmsIf1V1VZjtCv95qyI7e3SfiSMT~5j7E1SOsHbSZgQ-zBqwQsDayzM0~1ST6ZvikRl7~A70cVZxEOedOhDnxneGz7~NpDgw__&Key-Pair-Id=K204OQ5RWQVDLD' }
+    ]
+  },
+  {
+    name: 'المنشاوي مجوّد (Al-Minshawi, Mujawwad)',
+    color: '#44aa77',
+    style: 'Mujawwad',
+    ayat: [
+      { text: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَٰبِ ٱلْفِيلِ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/118405/audio/audio.mp3?Expires=1781474352&Signature=t7wkuFsSi8gITRlECCH6dhVl~0VKBsgaONo4ZulYo7obmQwRpXSThZpkVLXHTg-sNRWnLpnqMomPYq2aOALdkxkmNZBN2lK60vBJQ3Q9RX3Ji0PM1wwHU~hCZA~iJz8Z66fcYO7D335aXCKfcJiUns4y5-kq9oUVAeACBBF1nC-Y78ojhfYWyoBoffI6C98TRQySiSvN7egStLfvNIBcERANbV5M3idaGxjZ3SgtSwbnV2kVUzw2hUvp6cz-cx~67q-rHn6M2rTftr8vefDqlu5nqVXdb4GaVdqm-MTdf32JcQ4y5YYy9s6yqlGNeHF9nVaGx-7GvWB19t9VKNwl-g__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'أَلَمْ يَجْعَلْ كَيْدَهُمْ فِى تَضْلِيلٍۢ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/118406/audio/audio.mp3?Expires=1781474352&Signature=FscLxbHZuQ9gcH15ikr1fHGpwhbDcJqvEDCTJpiEvKxGGhVKi0w6XVtt00IeoGtl~QoO1XCDKrCT60FOXdDRFc31fQJoX2vErb1oI~VM1nHY45ANcsS8f4yd8D2qiJCYAVdkCctNeikN5wctSNjnlRJS8W5UGMPZoatiZKtqlZmc2Cly6duw216CEDjywBhlPOHVu-IW7F5fSN2jxLljCrPkKwexyOktrhvk2qnFn9icx98CcXOiIgDDeAkCKqdRnU1dQt1zP-xvdqTMdZaRwI3jBSLX90CJH1aOj6S8eD6p37tWvDWwM2U8E2NNbnp3wx3eEnqjjBQXr5jyt~1Dmw__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'وَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/118407/audio/audio.mp3?Expires=1781474352&Signature=IfyGH95g06fPkgmoMD3Ia50lCtdR6aaeEfD~XbqY3to4Bfrnkm-JJetaXkTmUBxtTIIWy38jC6zW1YJr-T8OxWjToboXeYHkd0Nt9E4R9jMa7r8GmSZyncaoJpzmJa0JDp0334-O4VFrpC4EiNdcQ8YD9WMrJHKkPiYPhMVst2CpcXOK~y-WBm4P19T0fM~pA9rRsjMrpxv4ts57xxPkKPj69rFdnwJE0wd0CewosnF2bHLLfKie4-8HEYxlsWBBqOILME04vsc3fgE-w3z0CjjxFNdVGUEZQ8SAKPrIt-JbGZEBnhzp4f0czJj3NVsK2I8dQynrhouKrH-WE~FpNA__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'تَرْمِيهِم بِحِجَارَةٍۢ مِّن سِجِّيلٍۢ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/118408/audio/audio.mp3?Expires=1781474352&Signature=ABq7-OhzSCcSgLnYAtllNl2VvzL3~iJVlC0iuKCyPtO3p~HYrJ8GMo1hHumUmvJQjBrfb-4SU6QPZMPM13YW4hiwYh-hycj0Tewdq32tAUqzKbGB97PPJiB1cqukKKk5J~OzCYY2VkU9P8PopLvetYOB4o3z6Cux-WUSfd1zJ2gL9YCAez4BRkkY30wL5-c~4~Oh-ti-WW-i8yLhDqKpBtHV9FRUEqYQUgOprzV9Rq2vZa6BhMvgPWwbWwdglZFX5LpWQHqnx49SWoRn3QUcu865n6ULTuMNptMcKoHz8FO~pj3D8fW-o9vZSBgvLG0px1ulUMZrW-U-XTnzeetyWQ__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'فَجَعَلَهُمْ كَعَصْفٍۢ مَّأْكُولٍۭ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/118409/audio/audio.mp3?Expires=1781474352&Signature=OyHLFSv8GaM8uIPJQqUTTg4tXXDhXwMzivhGXSJef~mxFX~egBhBpmljXtwLgaW6j~t4d4MhpUSyuqm6UuSy1p5vVqrTY3fhFa-760NXvNZCP3p3co~K49i-VCSJdCxkT2dNRCDdpHj3eB5dojL0b~Sp9gw~gyItQ7Wu4ZFrol1laN4XEZChuldV5HDBrmlkbcKMBO1pZgpjp5ZaeBVs34UYfMPEsFszjTD1GjkhWL0L4RZyPNgGgkRRiKKuLTyRVX-tU2g1IuGKFQZD5A2CKu-vRxsgYDdgzQNJr3wSkZndUaiS8xmgL7j05ZJ9NwaSNqU~WCRIRiKscaiLDDIiFQ__&Key-Pair-Id=K204OQ5RWQVDLD' }
+    ]
+  },
+  {
+    name: 'سعود الشريم (Saud Al-Shuraim)',
+    color: '#cc7733',
+    style: 'Murattal',
+    ayat: [
+      { text: 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ أَلَمْ تَرَ كَيْفَ فَعَلَ رَبُّكَ بِأَصْحَٰبِ ٱلْفِيلِ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/124641/audio/audio.mp3?Expires=1781474325&Signature=xLlTgug7OdZGBkAelAiNwiMcgABE1s7d0RcQZ4atP8mJMLSZwSlEZ9f1~HipTewTPKvJ0Gcz-oIaI3Y9O~N1AVK-hDz2SJj0gRZ~rTSoBZE17ntxfO29fNjj9eaS8aAT4E7pzwW6o5wLvEuw9pMeN9d9MhhcMfZ1c-P7FFLShAOtpZAghW0P8-j3JtJAYSIoTVmxOJ8WArHCTBnNJCHdP70yiRSxSB51IHpWREWlFsFjGOzeK3pZjOidjX-9t9UOmds7FLz3RxoNPklel-t1O9KgvokLK~b7NmsgJbpaWutvdkuQMnkfT~K6g1AxRVFn6CZZxCZrYOqa~Uljff~5Ww__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'أَلَمْ يَجْعَلْ كَيْدَهُمْ فِى تَضْلِيلٍۢ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/124642/audio/audio.mp3?Expires=1781474325&Signature=Yw4UQXV4VQli8LrmgrlY346Pp6hr6mDnsN7tRquoNI2UDPP3~xGgpdDTBpwjvb8ag-1JCKc-FV5QU0xcQLCJjBqfgYTl-fjWDcmBXClPbej6Od0MiDBJG7iap5sjnVZ2gVP05BvQRllRxhlYtOAziTeHbi1OnzBEoU~PtBxBDxVtpTN7Cyrd9LAmdJzfGRLdLvTMfq5k3NFlw-XCXxyps-O0-YBMHpxGVTR8Mr3AG23M5rSddi2pOYj08IpXZOxbszmLTfP1VF2X3x3ZdSNsPvrHjOnIGXu-N4ESxagDb2dHvl~AzA7Hjteee17~wOC4fcU~duYIJSfyQhHel4l7qQ__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'وَأَرْسَلَ عَلَيْهِمْ طَيْرًا أَبَابِيلَ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/124643/audio/audio.mp3?Expires=1781474325&Signature=JMlE~ZfUmnKtSGIyYiDrY2VabKs4yRtCMYPL9ArN0WANHhLluN7UPNV3Tg8eLYwchVwMsfoG5faEE071HApxB~~iguYaFvYWJNpJxRqJaxjUsvXzzqestOW7eDZQfLuwI9DB61y4KG9eco-3LadOTTxpHCpJmv6epFPXyTrgkpj5LBCsD6Meo6TWxfryHH7yvcQYvGAsUQbGkWzuzs09xbgaCzkookxWcXWZdbPIVPnsFpDeSmgov54yMLHy2dvkHRQ0O~8~IHaAC3bYr5u5~uc7PLAfRsdviUL-E25DDa9jKUInS0FWNr3HTuGoi7Dp2BctZASMkGmGn3QYcKAUDQ__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'تَرْمِيهِم بِحِجَارَةٍۢ مِّن سِجِّيلٍۢ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/124644/audio/audio.mp3?Expires=1781474325&Signature=Mj90tjN0liR26OkDT-thX~seRMi9HUBSFGUr3KopXjGnpZY0Bdm~UUrZ8W~vviYCj~x6SDUIUg37wK9Q-6kWN7xouNmIRHYQZhQqpw-4jpRpXNj1IMJ9ce22cywiI1C5GdIhxuZ5vGQoVSl3WhNgJeg7cCKx7Yd5NpOhDWsWJsMgPBGeWZompmd0GXS06OD0PnQrxUANev443NrBN1oNOMXQVZc~m~oEfYY7LHpgrvk3qjAZtbjmQ37fCHt228fuA5do3NHXrgUiFC3BCLa-99ZvfmgN9e4L7QY~8uJlFYOTxyjQM6499BQBESJVBwtbI80Tj1Fox4LVL2NZhCdVhw__&Key-Pair-Id=K204OQ5RWQVDLD' },
+      { text: 'فَجَعَلَهُمْ كَعَصْفٍۢ مَّأْكُولٍۭ', url: 'https://datasets-server.huggingface.co/cached-assets/MohamedRashad/Quran-Recitations/--/65ee6114d526c02f7f96d696bb254a2dd666270c/--/default/train/124645/audio/audio.mp3?Expires=1781474325&Signature=bHAre6RPaoy7bK-760GNe2VvIyIlQO9mgY7FHYmT4BOrXC6Vu0srOpjaOfML5v~34tBLDuwXumc6PSGzZickAJMTDxdG7yFPpIZ3YlPxNGpryujLOLKrBXExp3RmL80yjbAbCIE34O8BsDDg7k87JoWvOnOq6mSPIZlDEVy6a7PA9p9FVkCoxa8Z-d8nCAk-GB15VRRH193AIrDuqifQXTM46gq0kh-dnr7JsHisZxR1R4P7~pH~UDqxDNVxfp1RtudKktIjfDC7jgSYaeaQ6MweD45NEJUO7PcRzrbIN3Q6RcIn9L2imBwCdkpKAa~hYXu6YzE3d8To~6k2UIxy3w__&Key-Pair-Id=K204OQ5RWQVDLD' }
+    ]
+  }
+];
+
+// ======= STATE =======
+let currentAyah = 0;
+let pitchResults = null; // { reciterIdx: Float32Array[] (one per ayah) }
+let audioCtx = null;
+
+// ======= INIT =======
+function init() {
+  const grid = document.getElementById('reciterGrid');
+  RECITERS.forEach((r, ri) => {
+    const card = document.createElement('div');
+    card.className = 'reciter-card';
+    card.id = `card-${ri}`;
+    card.innerHTML = `
+      <div class="reciter-header" style="border-color:${r.color}; background:${r.color}18">
+        <div class="reciter-dot" style="background:${r.color}"></div>
+        <div class="reciter-name">${r.name}</div>
+        <span style="font-size:0.75rem;color:#888">${r.style}</span>
+      </div>
+      <div class="reciter-body">
+        <audio id="audio-${ri}" crossorigin="anonymous" controls preload="none" src="${r.ayat[currentAyah].url}"></audio>
+        <div class="status-line" id="status-${ri}">Ready</div>
+        <canvas id="mini-${ri}" style="width:100%;height:80px;margin-top:8px;border-radius:4px;background:#f8f5ff;display:block;"></canvas>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ======= AYAH SELECT =======
+function selectAyah(idx) {
+  currentAyah = idx;
+  document.querySelectorAll('.ayah-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.getElementById('ayahText').textContent = RECITERS[0].ayat[idx].text;
+
+  RECITERS.forEach((r, ri) => {
+    const audio = document.getElementById(`audio-${ri}`);
+    if (audio) audio.src = r.ayat[idx].url;
+  });
+
+  if (pitchResults) drawAll();
+}
+
+// ======= PITCH ANALYSIS =======
+function autocorrelationPitch(frame, sampleRate) {
+  const n = frame.length;
+  const half = Math.floor(n / 2);
+  const minLag = Math.floor(sampleRate / 700);
+  const maxLag = Math.floor(sampleRate / 70);
+
+  // Compute normalized difference function (YIN-style)
+  let d = new Float32Array(half);
+  for (let tau = 1; tau < half; tau++) {
+    let s = 0;
+    for (let j = 0; j < half; j++) {
+      const diff = frame[j] - frame[j + tau];
+      s += diff * diff;
+    }
+    d[tau] = s;
+  }
+
+  // Cumulative mean normalized difference
+  d[0] = 1;
+  let cumSum = 0;
+  for (let tau = 1; tau < half; tau++) {
+    cumSum += d[tau];
+    d[tau] = d[tau] * tau / cumSum;
+  }
+
+  // Find first dip below threshold
+  const threshold = 0.15;
+  for (let tau = minLag; tau <= maxLag && tau < half; tau++) {
+    if (d[tau] < threshold) {
+      // Parabolic interpolation
+      const prev = tau > 1 ? d[tau - 1] : d[tau];
+      const next = tau < half - 1 ? d[tau + 1] : d[tau];
+      const shift = (next - prev) / (2 * (2 * d[tau] - prev - next) + 1e-8);
+      return sampleRate / (tau + shift);
+    }
+  }
+  return 0; // unvoiced
+}
+
+function extractPitchTrack(audioBuffer) {
+  const data = audioBuffer.getChannelData(0);
+  const sr = audioBuffer.sampleRate;
+  const frameSize = 2048;
+  const hopSize = 256;
+  const pitches = [];
+
+  for (let i = 0; i + frameSize < data.length; i += hopSize) {
+    const frame = data.slice(i, i + frameSize);
+
+    // Windowing
+    for (let j = 0; j < frameSize; j++) {
+      frame[j] *= 0.5 - 0.5 * Math.cos(2 * Math.PI * j / frameSize);
+    }
+
+    const energy = frame.reduce((s, v) => s + v * v, 0) / frameSize;
+    if (energy < 0.0005) {
+      pitches.push(0);
+    } else {
+      pitches.push(autocorrelationPitch(frame, sr));
+    }
+  }
+
+  return new Float32Array(pitches);
+}
+
+// ======= DRAW =======
+const MIN_HZ = 70, MAX_HZ = 550;
+
+function hzToY(hz, h) {
+  if (hz <= 0) return -1;
+  const cents = 1200 * Math.log2(hz / MIN_HZ);
+  const range = 1200 * Math.log2(MAX_HZ / MIN_HZ);
+  return h - (cents / range) * h;
+}
+
+function drawPitchTrack(ctx, pitches, color, w, h, alpha = 1) {
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  let first = true;
+  const step = w / pitches.length;
+  for (let i = 0; i < pitches.length; i++) {
+    const y = hzToY(pitches[i], h);
+    if (y < 0) { first = true; continue; }
+    const x = i * step;
+    if (first) { ctx.moveTo(x, y); first = false; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function drawGridLines(ctx, w, h) {
+  ctx.strokeStyle = '#ddd';
+  ctx.lineWidth = 0.5;
+  ctx.font = '10px monospace';
+  ctx.fillStyle = '#aaa';
+  const notes = [100, 150, 200, 250, 300, 400, 500];
+  notes.forEach(hz => {
+    const y = hzToY(hz, h);
+    if (y < 0 || y > h) return;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    ctx.fillText(hz + ' Hz', 4, y - 2);
+  });
+}
+
+function drawAll() {
+  if (!pitchResults) return;
+
+  // Overlay canvas
+  const overlayCanvas = document.getElementById('overlayCanvas');
+  const ow = overlayCanvas.width = overlayCanvas.offsetWidth * window.devicePixelRatio;
+  const oh = overlayCanvas.height = overlayCanvas.offsetHeight * window.devicePixelRatio;
+  const octx = overlayCanvas.getContext('2d');
+  octx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const w = overlayCanvas.offsetWidth, h = overlayCanvas.offsetHeight;
+  octx.clearRect(0, 0, w, h);
+  drawGridLines(octx, w, h);
+
+  RECITERS.forEach((r, ri) => {
+    if (pitchResults[ri] && pitchResults[ri][currentAyah]) {
+      drawPitchTrack(octx, pitchResults[ri][currentAyah], r.color, w, h, 0.85);
+    }
+  });
+
+  // Mini canvases
+  RECITERS.forEach((r, ri) => {
+    const mini = document.getElementById(`mini-${ri}`);
+    if (!mini) return;
+    const mw = mini.width = mini.offsetWidth * window.devicePixelRatio;
+    const mh = mini.height = mini.offsetHeight * window.devicePixelRatio;
+    const mctx = mini.getContext('2d');
+    mctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    const mwo = mini.offsetWidth, mho = mini.offsetHeight;
+    mctx.clearRect(0, 0, mwo, mho);
+    if (pitchResults[ri] && pitchResults[ri][currentAyah]) {
+      drawGridLines(mctx, mwo, mho);
+      drawPitchTrack(mctx, pitchResults[ri][currentAyah], r.color, mwo, mho);
+    }
+  });
+}
+
+// ======= MAIN ANALYZE =======
+async function analyzeAll() {
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.textContent = 'Loading audio…';
+  document.getElementById('overallStatus').textContent = 'Fetching and decoding audio files…';
+  document.getElementById('overallStatus').className = 'status-line';
+
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+  pitchResults = {};
+
+  let loadedCount = 0;
+  const total = RECITERS.length * 5;
+
+  await Promise.all(RECITERS.map(async (r, ri) => {
+    pitchResults[ri] = [];
+    for (let ai = 0; ai < r.ayat.length; ai++) {
+      const statusEl = document.getElementById(`status-${ri}`);
+      if (statusEl) statusEl.textContent = `Loading ayah ${ai + 1}/5…`;
+      try {
+        const resp = await fetch(r.ayat[ai].url, { mode: 'cors' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const ab = await resp.arrayBuffer();
+        const decoded = await audioCtx.decodeAudioData(ab);
+        const pitchTrack = extractPitchTrack(decoded);
+        pitchResults[ri][ai] = pitchTrack;
+        loadedCount++;
+        btn.textContent = `Loading… (${loadedCount}/${total})`;
+      } catch (err) {
+        console.error(`Reciter ${ri}, ayah ${ai}:`, err);
+        pitchResults[ri][ai] = null;
+        if (statusEl) {
+          statusEl.textContent = err.message.includes('CORS') || err.message.includes('Failed to fetch')
+            ? 'CORS blocked — listen to audio but pitch chart unavailable for this file.'
+            : `Error: ${err.message}`;
+          statusEl.className = 'status-line error';
+        }
+        loadedCount++;
+      }
+    }
+    const statusEl = document.getElementById(`status-${ri}`);
+    if (statusEl && !statusEl.className.includes('error')) {
+      statusEl.textContent = 'Pitch extracted ✓';
+      statusEl.className = 'status-line ok';
+    }
+  }));
+
+  const successCount = RECITERS.flatMap((_, ri) =>
+    (pitchResults[ri] || []).filter(p => p !== null)
+  ).length;
+
+  if (successCount === 0) {
+    document.getElementById('overallStatus').textContent =
+      'Could not load audio — CORS restriction on these signed URLs. ' +
+      'You can still use the audio players below to listen to each reciter.';
+    document.getElementById('overallStatus').className = 'status-line error';
+    btn.textContent = 'Try Again';
+    btn.disabled = false;
+    return;
+  }
+
+  document.getElementById('overallStatus').textContent =
+    `Pitch analysis complete for ${successCount}/${total} ayat. Use the Ayah tabs to explore.`;
+  document.getElementById('overallStatus').className = 'status-line ok';
+  btn.textContent = 'Re-analyze';
+  btn.disabled = false;
+
+  drawAll();
+}
+
+// ======= RESIZE =======
+window.addEventListener('resize', () => { if (pitchResults) drawAll(); });
+
+// Start
+init();
+</script>
+</body>
+</html>
